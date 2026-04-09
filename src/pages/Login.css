@@ -1,0 +1,12 @@
+.login-error {
+  background: var(--clr-error);
+  color: #fff;
+  padding: 0.8rem 1.25rem;
+  border-radius: var(--r-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: var(--sp-5);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  animation: fadeUp 0.3s var(--ease) both;
+}
