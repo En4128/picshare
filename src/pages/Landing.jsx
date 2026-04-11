@@ -66,10 +66,11 @@ export default function Landing() {
             <div className="landing__hero-album fade-up fade-up-d1">
               <div className="landing__album-card landing__album-card--main">
                 <div className="img-ratio ratio-3-2">
-                  <div className="photo-placeholder" style={{ background: '#e8f0e4' }}>
-                    <span style={{ fontSize:'2rem' }}>🏔</span>
-                    <span className="label-caps">Italian Dolomites 2024</span>
-                  </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1533460004989-cef01064af7e?q=80&w=1000&auto=format&fit=crop" 
+                    alt="Italian Dolomites" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
                 </div>
                 <div className="landing__album-meta">
                   <span className="label-caps">Live</span>
