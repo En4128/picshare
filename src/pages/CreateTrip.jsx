@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 export default function CreateTrip() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [tripName, setTripName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -88,7 +90,7 @@ export default function CreateTrip() {
 
       const { data, error: insertError } = await supabase
         .from('trips')
-        .insert([{ title: tripName, date_range: date_range, ...(uploadedUrl && { cover_url: uploadedUrl }) }])
+        .insert([{ title: tripName, date_range: date_range, user_id: user?.id, ...(uploadedUrl && { cover_url: uploadedUrl }) }])
         .select()
 
       if (insertError) throw insertError

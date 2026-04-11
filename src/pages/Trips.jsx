@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 import './Trips.css'
 
 export default function Trips() {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [openMenuId, setOpenMenuId] = useState(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -20,6 +22,7 @@ export default function Trips() {
       const { data, error } = await supabase
         .from('trips')
         .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false })
       
       if (!error && data) {
@@ -30,7 +33,7 @@ export default function Trips() {
       setLoading(false)
     }
     fetchTrips()
-  }, [])
+  }, [user])
 
   const handleDelete = async (e, tripId) => {
     e.preventDefault();
@@ -52,6 +55,7 @@ export default function Trips() {
         .from('trips')
         .delete()
         .eq('id', tripId)
+        .eq('user_id', user?.id) // Extra safety check!
         .select();
       
       if (error) throw error;
@@ -183,12 +187,21 @@ export default function Trips() {
                   )}
                 </div>
                 <div className="img-ratio ratio-3-2">
-                  <div
-                    className="photo-placeholder"
-                    style={{ background: `linear-gradient(135deg, ${t.color_a || '#d4e8d0'}, ${t.color_b || '#a8c5a0'})` }}
-                  >
-                    <span style={{ fontSize: '2.5rem' }}>📷</span>
-                  </div>
+                  {t.cover_url ? (
+                    <img
+                      src={t.cover_url}
+                      alt={t.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="photo-placeholder"
+                      style={{ background: `linear-gradient(135deg, ${t.color_a || '#d4e8d0'}, ${t.color_b || '#a8c5a0'})` }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>📷</span>
+                    </div>
+                  )}
                 </div>
                 <div className="trip-card__body">
                   <div className="trip-card__top">

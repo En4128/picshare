@@ -35,9 +35,9 @@ const HIGHLIGHTS = [
 ]
 
 const SAMPLE_TRIPS = [
-  { id: 'demo-1', label: 'Italian Dolomites 2024', shots: 142, colorA: '#d4e8d0', colorB: '#a8c5a0' },
-  { id: 'demo-2', label: 'Kyoto in Autumn', shots: 98, colorA: '#f0d9c8', colorB: '#d4a87a' },
-  { id: 'demo-3', label: 'Patagonia Trek', shots: 215, colorA: '#c8d8e8', colorB: '#7aa8c8' },
+  { id: 'demo-1', label: 'Italian Dolomites 2024', shots: 142, colorA: '#d4e8d0', colorB: '#a8c5a0', image: 'https://images.unsplash.com/photo-1589802829985-817e51171b92?q=80&w=800&auto=format&fit=crop' },
+  { id: 'demo-2', label: 'Kyoto in Autumn', shots: 98, colorA: '#f0d9c8', colorB: '#d4a87a', image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=800&auto=format&fit=crop' },
+  { id: 'demo-3', label: 'Patagonia Trek', shots: 215, colorA: '#c8d8e8', colorB: '#7aa8c8', image: 'https://images.unsplash.com/photo-1531761535209-180857e963b9?q=80&w=800&auto=format&fit=crop' },
 ]
 
 export default function Landing() {
@@ -123,12 +123,12 @@ export default function Landing() {
             {SAMPLE_TRIPS.map((t) => (
               <Link to={`/trips/${t.id}`} key={t.id} className="landing__preview-card card">
                 <div className="img-ratio ratio-4-5">
-                  <div
-                    className="photo-placeholder"
-                    style={{ background: `linear-gradient(135deg, ${t.colorA}, ${t.colorB})` }}
-                  >
-                    <span style={{ fontSize: '2.5rem' }}>📸</span>
-                  </div>
+                  <img
+                    src={t.image}
+                    alt={t.label}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    loading="lazy"
+                  />
                 </div>
                 <div className="landing__preview-info">
                   <p className="headline" style={{ fontSize: '1.1rem' }}>{t.label}</p>
