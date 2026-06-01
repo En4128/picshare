@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
+import ImageModal from '../components/ImageModal.jsx'
+import DialogModal from '../components/DialogModal.jsx'
 import './TripDashboard.css'
 
 export default function TripDashboard() {
@@ -11,6 +13,8 @@ export default function TripDashboard() {
   const [favorites, setFavorites] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`fav_${id}`) || '[]') } catch { return [] }
   })
+  const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [photoToDelete, setPhotoToDelete] = useState(null)
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -47,13 +51,13 @@ export default function TripDashboard() {
     })
   }, [id])
 
-  const handleDelete = async (photo) => {
-    // Confirm before deletion to prevent accidental clicks
-    const confirmed = window.confirm("Are you sure you want to delete this asset from the archive?")
-    if (!confirmed) return
+  const handleDelete = (photo) => {
+    setPhotoToDelete(photo)
+  }
 
-    // 1. Delete from storage bucket
-    // Extract file path from publicUrl: ".../storage/v1/object/public/picshare/:trip_id/:filename"
+  const confirmDeletePhoto = async () => {
+    if (!photoToDelete) return
+    const photo = photoToDelete
     try {
       if (photo.url) {
         const filePath = photo.url.split('/picshare/')[1];
@@ -62,7 +66,6 @@ export default function TripDashboard() {
         }
       }
       
-      // 2. Delete from database photos table
       const { error } = await supabase
         .from('photos')
         .delete()
@@ -70,12 +73,15 @@ export default function TripDashboard() {
 
       if (error) throw error
 
-      // 3. Update UI state instantly
       setPhotos(prev => prev.filter(p => p.id !== photo.id))
-
+      if (selectedPhoto?.id === photo.id) {
+        setSelectedPhoto(null)
+      }
     } catch (err) {
       console.error("Failed to delete photo:", err.message)
       alert("Failed to delete image. Please check your Supabase Database RLS DELETE policies.")
+    } finally {
+      setPhotoToDelete(null)
     }
   }
 
@@ -156,10 +162,18 @@ export default function TripDashboard() {
             photos.map((p, idx) => {
               const isFav = favorites.includes(p.id)
               return (
-                <div key={p.id} className="dashboard__photo card" style={{ animationDelay: `${idx * 0.05}s`, position: 'relative' }}>
+                <div 
+                  key={p.id} 
+                  className="dashboard__photo card" 
+                  style={{ animationDelay: `${idx * 0.05}s`, position: 'relative', cursor: 'pointer' }}
+                  onClick={() => setSelectedPhoto(p)}
+                >
                   {/* Delete button */}
                   <button
-                    onClick={() => handleDelete(p)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(p)
+                    }}
                     style={{
                       position: 'absolute',
                       top: '10px',
@@ -188,7 +202,10 @@ export default function TripDashboard() {
                   </button>
                   {/* Favorite heart button */}
                   <button
-                    onClick={() => toggleFavorite(p.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleFavorite(p.id)
+                    }}
                     style={{
                       position: 'absolute',
                       top: '10px',
@@ -234,6 +251,27 @@ export default function TripDashboard() {
         </div>
 
       </div>
+
+      {selectedPhoto && (
+        <ImageModal
+          photo={selectedPhoto}
+          onClose={() => setSelectedPhoto(null)}
+          isFavorite={favorites.includes(selectedPhoto.id)}
+          onToggleFavorite={(photoId) => {
+            toggleFavorite(photoId);
+          }}
+          onDelete={handleDelete}
+        />
+      )}
+
+      <DialogModal
+        isOpen={!!photoToDelete}
+        type="confirm"
+        title="Delete Photo"
+        message="Are you sure you want to delete this asset from the archive? This action cannot be undone."
+        onConfirm={confirmDeletePhoto}
+        onClose={() => setPhotoToDelete(null)}
+      />
     </main>
   )
 }

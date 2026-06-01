@@ -67,8 +67,8 @@ export default function Landing() {
               <div className="landing__album-card landing__album-card--main">
                 <div className="img-ratio ratio-3-2">
                   <img 
-                    src="https://images.unsplash.com/photo-1533460004989-cef01064af7e?q=80&w=1000&auto=format&fit=crop" 
-                    alt="Italian Dolomites" 
+                    src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000&auto=format&fit=crop" 
+                    alt="Mountain landscape travel memory" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 </div>
@@ -79,9 +79,11 @@ export default function Landing() {
               </div>
               <div className="landing__album-card landing__album-card--float">
                 <div className="img-ratio ratio-4-5">
-                  <div className="photo-placeholder" style={{ background: '#f0e8d8' }}>
-                    <span style={{ fontSize:'1.5rem' }}>🍂</span>
-                  </div>
+                  <img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQD5KggmEcCxdJ2LFrDloUVCayDxcIWQdVRtA&s"
+                    alt="Kyoto travel memory"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
                 </div>
               </div>
             </div>

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
+import ImageModal from '../components/ImageModal.jsx'
 
 export default function Favorites() {
   const { id } = useParams()
   const [trip, setTrip] = useState(null)
   const [favoritePhotos, setFavoritePhotos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedPhoto, setSelectedPhoto] = useState(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -47,6 +49,11 @@ export default function Favorites() {
       const current = JSON.parse(localStorage.getItem(`fav_${id}`) || '[]')
       localStorage.setItem(`fav_${id}`, JSON.stringify(current.filter(fid => fid !== photoId)))
     } catch { /* ignore */ }
+  }
+
+  const toggleFavorite = (photoId) => {
+    removeFavorite(photoId)
+    setSelectedPhoto(null)
   }
 
   return (
@@ -103,10 +110,18 @@ export default function Favorites() {
             }}
           >
             {favoritePhotos.map((p) => (
-              <div key={p.id} className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+              <div 
+                key={p.id} 
+                className="card" 
+                style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
+                onClick={() => setSelectedPhoto(p)}
+              >
                 {/* Unfavorite button */}
                 <button
-                  onClick={() => removeFavorite(p.id)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    removeFavorite(p.id)
+                  }}
                   style={{
                     position: 'absolute',
                     top: '10px',
@@ -151,6 +166,15 @@ export default function Favorites() {
         )}
 
       </div>
+
+      {selectedPhoto && (
+        <ImageModal
+          photo={selectedPhoto}
+          onClose={() => setSelectedPhoto(null)}
+          isFavorite={true}
+          onToggleFavorite={toggleFavorite}
+        />
+      )}
     </main>
   )
 }

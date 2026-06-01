@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import DialogModal from '../components/DialogModal.jsx'
 import './Trips.css'
 
 export default function Trips() {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [openMenuId, setOpenMenuId] = useState(null)
+  const [activeTrip, setActiveTrip] = useState(null)
+  const [dialogType, setDialogType] = useState(null) // 'edit' or 'delete'
   const { user } = useAuth()
 
   useEffect(() => {
@@ -35,12 +38,26 @@ export default function Trips() {
     fetchTrips()
   }, [user])
 
-  const handleDelete = async (e, tripId) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleConfirmEdit = async (newName) => {
+    if (newName && newName.trim() && activeTrip) {
+      const { error } = await supabase
+        .from('trips')
+        .update({ title: newName })
+        .eq('id', activeTrip.id)
+      
+      if (!error) {
+        setTrips(prev => prev.map(trip => trip.id === activeTrip.id ? { ...trip, title: newName } : trip))
+      } else {
+        alert("Failed to update title.")
+      }
+    }
+    setActiveTrip(null)
+    setDialogType(null)
+  }
 
-    if (!window.confirm("Are you sure you want to delete this expedition? This action cannot be undone.")) return;
-
+  const handleConfirmDelete = async () => {
+    if (!activeTrip) return
+    const tripId = activeTrip.id
     try {
       // 1. Delete associated photos to avoid foreign key constraints
       const { error: photosError } = await supabase
@@ -68,6 +85,9 @@ export default function Trips() {
     } catch (err) {
       console.error("Failed to delete trip:", err);
       alert(`Failed to delete the trip: ${err.message || err.details || "Unknown error"}`);
+    } finally {
+      setActiveTrip(null)
+      setDialogType(null)
     }
   }
 
@@ -154,16 +174,8 @@ export default function Trips() {
                         onClick={(e) => {
                           e.preventDefault(); e.stopPropagation();
                           setOpenMenuId(null);
-                          const newName = window.prompt("Enter new expedition title:", t.title);
-                          if (newName && newName.trim()) {
-                            supabase.from('trips').update({ title: newName }).eq('id', t.id).then(({error}) => {
-                              if (!error) {
-                                setTrips(prev => prev.map(trip => trip.id === t.id ? {...trip, title: newName} : trip));
-                              } else {
-                                alert("Failed to update title.");
-                              }
-                            });
-                          }
+                          setActiveTrip(t);
+                          setDialogType('edit');
                         }}
                         style={{ padding: '10px 16px', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--clr-ink)', transition: 'background 0.2s', borderBottom: '1px solid var(--clr-surface-mid)' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--clr-surface-low)'}
@@ -175,7 +187,8 @@ export default function Trips() {
                         onClick={(e) => {
                           e.preventDefault(); e.stopPropagation();
                           setOpenMenuId(null);
-                          handleDelete(e, t.id);
+                          setActiveTrip(t);
+                          setDialogType('delete');
                         }}
                         style={{ padding: '10px 16px', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--clr-error)', transition: 'background 0.2s' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--clr-surface-low)'}
@@ -218,6 +231,25 @@ export default function Trips() {
           </div>
         )}
       </div>
+
+      <DialogModal
+        isOpen={dialogType === 'edit'}
+        type="prompt"
+        title="Edit Expedition"
+        message="Enter new expedition title:"
+        defaultValue={activeTrip?.title || ''}
+        onConfirm={handleConfirmEdit}
+        onClose={() => { setActiveTrip(null); setDialogType(null); }}
+      />
+
+      <DialogModal
+        isOpen={dialogType === 'delete'}
+        type="confirm"
+        title="Delete Expedition"
+        message="Are you sure you want to delete this expedition? This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        onClose={() => { setActiveTrip(null); setDialogType(null); }}
+      />
     </main>
   )
 }
